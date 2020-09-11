@@ -17,6 +17,7 @@ class LocationSchema extends Schema {
       table.string('countryCode')
       table.string('zipcode')
       table.string('provider')
+      table.string('imageURL')
       table.timestamps()
     })
   }

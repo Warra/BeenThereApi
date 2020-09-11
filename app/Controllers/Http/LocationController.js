@@ -1,6 +1,7 @@
 'use strict'
 const NodeGeocoder = require('node-geocoder');
 const Location = use('App/Models/Location')
+const imageSearch = require('image-search-google');
 
 class LocationController {
   async index() {
@@ -22,6 +23,8 @@ class LocationController {
       provider,
     } = details[0]
 
+    const imageURL = await this.getImageURL(city, country)
+
     const location = new Location()
 
     location.lat = lat
@@ -34,8 +37,8 @@ class LocationController {
     location.countryCode = countryCode
     location.zipcode = zipcode
     location.provider = provider
+    location.imageURL = imageURL
 
-    // this.getImageURL(city, country)
     await location.save()
 
     return {
@@ -48,13 +51,21 @@ class LocationController {
       zipcode,
       lat,
       lon,
-      dateTime: location.created_at
+      dateTime: location.created_at,
+      imageURL,
     }
   }
 
   async getImageURL(city, country) {
-    // const images = await gis(`${city} ${country}`);
-    console.log(images)
+    const client = new imageSearch(process.env.CSE_ID, process.env.SEARCH_API_KEY);
+    const searchTerm = `${city} ${country}`
+    const images = await client.search(searchTerm, { type: "photo" });
+    if (images.length > 0) {
+      return images[0].url
+    }
+    const term = `${city}`
+    const retry = await client.search(term);
+    return retry[0].url
   }
 
   async getCoordinates(lat, lon) {
